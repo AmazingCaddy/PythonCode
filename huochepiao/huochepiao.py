@@ -1,4 +1,6 @@
-#encoding:utf-8
+#!/usr/bin/env python
+#coding: utf-8
+
 import urllib2, urllib, httplib, socket
 import json
 import platform

@@ -1,6 +1,7 @@
-#encoding:utf-8
-import re
+#!/usr/bin/env python
+#coding: utf-8
 
+import re
 import Stations
 
 def validate_station(station_name):
