@@ -1,11 +1,11 @@
 #encoding:utf-8
-import urllib2, urllib, httplib
+import urllib2, urllib, httplib, socket
 import json
 import platform
 import re
 import time
 
-import DetectCode, Stations, Train, Validate, Ticket
+import DetectCode, Stations, Validate
 
 def get_all_tickets(params):
 	'''
@@ -46,37 +46,66 @@ def get_all_tickets(params):
 	request = urllib2.Request(request_url)
 	
 	try:
-		response = urllib2.urlopen(request)
+		response = urllib2.urlopen(request, timeout = 10)
+		print time.time()
+		json_string = response.read()
+		print time.time()
 	except urllib2.HTTPError, e:
+		if isinstance(e.reason, socket.timeout):
+			print 'Time Out'
+			return list()
 		print e.code
 
-	print time.time()
-	
-	json_string = response.read()
-	print time.time()
-	
-	rlt = json.loads(json_string)
-
-	results = rlt['data']
+	json_data = json.loads(json_string)
+	results = json_data['data']
 
 	tickets = list()
 	if results and isinstance(results, list):
 		for res in results:
-			ticket = Ticket.Ticket(res['queryLeftNewDTO'])
+			ticket = res['queryLeftNewDTO']
 			tickets.append(ticket)
-	#		if l['queryLeftNewDTO']['canWebBuy'] == 'Y':
-	#			print l['queryLeftNewDTO']['station_train_code']
 	return tickets
 
 def get_all_canbuy_tickets(tickets):
 	canbuy_tickets = list()
 	for ticket in tickets:
-		if ticket.getPropertyByName('canWebBuy') == 'Y':
+		if ticket['canWebBuy'] == 'Y':
 			canbuy_tickets.append(ticket)
 	return canbuy_tickets
 
 def print_tickets(tickets):
 	'''
+		e.g.
+		"train_no": "1100000K7500",
+		"station_train_code": "K75",
+		"start_station_telecode": "CCT",
+		"start_station_name": "长春",
+		"end_station_telecode": "NGH",
+		"end_station_name": "宁波",
+		"from_station_telecode": "SNH",
+		"from_station_name": "上海南",
+		"to_station_telecode": "NGH",
+		"to_station_name": "宁波",
+		"start_time": "05:18",
+		"arrive_time": "09:43",
+		"day_difference": "0",
+		"train_class_name": "",
+		"lishi": "04:25",
+		"canWebBuy": "Y",
+		"lishiValue": "265",
+		"yp_info": "1005053219401525000810050500653010150098",
+		"control_train_day": "20300303",
+		"start_train_date": "20140110",
+		"seat_feature": "W3431333",
+		"yp_ex": "10401030",
+		"train_seat_feature": "3",
+		"seat_types": "1413",
+		"location_code": "T2",
+		"from_station_no": "35",
+		"to_station_no": "41",
+		"control_day": 67,
+		"sale_time": "0800",
+		"is_support_card": "0",
 		"gg_num": "--",	
 		"gr_num": "--",	高级软卧
 		"qt_num": "--",	其他
@@ -92,18 +121,38 @@ def print_tickets(tickets):
 		"swz_num": "--"	商务座
 	'''
 	platform_encoding = DetectCode.get_platform_encoding()
+
+	from_station_max_len = 0
+	to_station_max_len = 0
+
+	for ticket in tickets:
+		from_station_len = len(ticket['from_station_name'])
+		to_station_len = len(ticket['to_station_name'])
+		from_station_max_len = from_station_max_len if from_station_max_len > from_station_len else from_station_len
+		to_station_max_len = to_station_max_len if to_station_max_len > to_station_len else to_station_len
+	
+	from_station_basewidth = 7 + from_station_max_len * 2
+	to_station_basewidth = 7 + to_station_max_len * 2
+
 	number = 0
 	for ticket in tickets:
 		number += 1
+
 		out = list()
 		out.append('%-4d' % number)
-		out.append(ticket.getPropertyByName('station_train_code').encode(platform_encoding))
-		out.append('%s(%s)' % (ticket.getPropertyByName('from_station_name').encode(platform_encoding), ticket.getPropertyByName('start_time').encode(platform_encoding)))
-		out.append('%s(%s)' % (ticket.getPropertyByName('to_station_name').encode(platform_encoding), ticket.getPropertyByName('arrive_time').encode(platform_encoding)))
-		out.append('全程:(%s)' % ticket.getPropertyByName('lishi').encode(platform_encoding))
-		format = '%s%-8s%s -> %s %s\t' % tuple(out)
-		print format
-	pass
+		out.append(ticket['station_train_code'].encode(platform_encoding))
+		tmp_str = '%s(%s)' % (ticket['from_station_name'].encode(platform_encoding), ticket['start_time'].encode(platform_encoding))
+		out.append(tmp_str)
+		tmp_str = '%s(%s)' % (ticket['to_station_name'].encode(platform_encoding), ticket['arrive_time'].encode(platform_encoding))
+		out.append(tmp_str)
+		out.append('全程:(%s)' % ticket['lishi'].encode(platform_encoding))
+
+		from_station_name_len = len(ticket['from_station_name']) + from_station_basewidth
+		to_station_name_len = len(ticket['to_station_name']) + to_station_basewidth
+		format_str = '%%s%%-6s%%%ds -> %%%ds  %%s' % (from_station_name_len, to_station_name_len)
+
+		print format_str % tuple(out)
+
 
 def get_all_stations(params):
 	'''
@@ -193,8 +242,9 @@ def main():
 		}
 		#print params
 		tickets = get_all_tickets(params)
+		#print_tickets(tickets)
+		
 		canbuy_tickets = get_all_canbuy_tickets(tickets)
-
 		print_tickets(canbuy_tickets)
 
 		con_message = raw_input(con_message)
