@@ -203,7 +203,6 @@ def main():
 			if from_station_info:
 				break
 			message = error_message['station_not_exist']
-			#print error_message
 
 		message = input_tip
 		while True:
@@ -213,7 +212,6 @@ def main():
 			if to_station_info:
 				break
 			message = error_message['station_not_exist']
-			#print error_message
 
 		message = input_tip
 		while True:
@@ -222,15 +220,12 @@ def main():
 			if (Validate.validate_date(train_date)):
 				break
 			message = error_message['date_format']
-			#print error_message
 		
-		#message = '请输入'
 		while True:
 			purpose_codes = raw_input(purpose_codes_str)
 			purpose_codes = purpose_codes.decode(platform_encoding)
 			if purpose_codes in ['Y', 'y', 'N', 'n']:
 				break
-			#print error_message
 
 		if purpose_codes in ['y', 'Y']:
 			purpose_codes = '0X00'
