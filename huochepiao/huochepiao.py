@@ -147,7 +147,7 @@ def print_tickets(tickets):
 		out.append(tmp_str)
 		tmp_str = '%s(%s)' % (ticket['to_station_name'].encode(platform_encoding), ticket['arrive_time'].encode(platform_encoding))
 		out.append(tmp_str)
-		out.append('全程:(%s)' % ticket['lishi'].encode(platform_encoding))
+		out.append(u'全程:(%s)'.encode(platform_encoding) % ticket['lishi'].encode(platform_encoding))
 
 		from_station_name_len = len(ticket['from_station_name']) + from_station_basewidth
 		to_station_name_len = len(ticket['to_station_name']) + to_station_basewidth
@@ -192,9 +192,10 @@ def main():
 		'station_not_exist': u'该火车站不存在，请输入正确的'.encode(platform_encoding),
 		'date_format': u'日期格式错误，请重新输入'.encode(platform_encoding)
 	}
+	input_tip =  u'请输入'.encode(platform_encoding)
 
 	while True:
-		message = '请输入'
+		message = input_tip
 		while True:
 			from_station = raw_input(message + from_station_str)
 			from_station = from_station.decode(platform_encoding)
@@ -204,9 +205,9 @@ def main():
 			message = error_message['station_not_exist']
 			#print error_message
 
-		message = '请输入'
+		message = input_tip
 		while True:
-			to_station = raw_input(message +to_station_str)
+			to_station = raw_input(message + to_station_str)
 			to_station = to_station.decode(platform_encoding)
 			to_station_info = Validate.validate_station(to_station)
 			if to_station_info:
@@ -214,7 +215,7 @@ def main():
 			message = error_message['station_not_exist']
 			#print error_message
 
-		message = '请输入'
+		message = input_tip
 		while True:
 			train_date = raw_input(message +train_date_str)
 			train_date = train_date.decode(platform_encoding)
