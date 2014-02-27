@@ -66,6 +66,7 @@ def fetch(url, pattern):
 	return url_list
 
 def fetch_fenlei():
+	platform_encoding = get_platform_encoding()
 	url = r'http://fenlei.baike.com'
 	pattern = ur'^(http://fenlei.baike.com)/([\u4e00-\u9fa5]+)'
 	url_list = fetch(url, pattern)
@@ -73,12 +74,14 @@ def fetch_fenlei():
 	url_queue.append(url)
 	cnt = 0
 	res = dict()
+	fp = open('fenlei.txt', 'w')
 	try:
-		while len(url_queue):
+		while len(url_queue) and cnt < 100000:
 			cnt += 1
 			print cnt
 			url = url_queue[0]
-			print url
+			print url.decode('utf-8').encode(platform_encoding)
+			fp.write(url + '\n')
 			url_queue.remove(url)
 			if url in res:
 				print u'已经搜索过'.encode(platform_encoding)
@@ -93,10 +96,6 @@ def fetch_fenlei():
 		pass
 	finally:
 		#print "len(url_queue) =", len(url_queue)
-		fp = open('fenlei.txt', 'w')
-		for (key, value) in res.items():
-			fp.write(key + '\n')
-			#print key
 		fp.close()
 
 if __name__ == '__main__':
