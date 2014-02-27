@@ -4,8 +4,17 @@
 from bs4 import BeautifulSoup
 import urllib, urllib2
 import re, hashlib, time
+import socket
 
 import MySQLdb
+
+import platform
+
+def get_platform_encoding():
+	platform_encoding = 'utf-8'
+	if platform.system() not in ['Linux', 'Darwin']:
+		platform_encoding = 'gbk'
+	return platform_encoding
 
 def is_chinese(uchar):
 	"""判断一个unicode是否是汉字"""
@@ -21,17 +30,22 @@ def fetch(url, pattern):
 			req = urllib2.Request(url)
 			response = urllib2.urlopen(req, None, 10)
 			page = response.read()
+		except socket.timeout, e:
+			fails += 1
+			time.sleep(5)
+			print u'网络连接超时, 正在尝试再次请求: '.encode(platform_encoding), fails
 		except urllib2.URLError, e:
 			fails += 1
 			time.sleep(5)
-			print '网络连接出现问题, 正在尝试再次请求: ', fails
+			print u'网络连接出现问题, 正在尝试再次请求: '.encode(platform_encoding), fails
 		else:
 			break
 	if fails >= 3:
 		return list()
-	soup = BeautifulSoup(page, 'lxml', from_encoding='utf-8')
+	soup = BeautifulSoup(page, from_encoding='utf-8')
 	links = soup.find_all('a')
 	url_list = list()
+	platform_encoding = get_platform_encoding()
 	#chinese_pattern = re.compile(u'[\u4e00-\u9fa5]+')
 	for li in links:
 		if 'href' in li.attrs:			
@@ -59,22 +73,28 @@ def fetch_fenlei():
 	url_queue.append(url)
 	cnt = 0
 	res = dict()
-	while len(url_queue) and cnt < 1000:
-		cnt += 1
-		print cnt
-		url = url_queue[0]
-		print url
-		url_queue.remove(url)
-		if url in res:
-			print '已经搜索过'
-			continue
-		res[url] = cnt
-		url_list = fetch(url, pattern)
-		for url in url_list:
-			url_queue.append(url)
-		time.sleep(2)
-	print "len(url_queue) =", len(url_queue)
-	print res
+	try:
+		while len(url_queue) and cnt < 1000:
+			cnt += 1
+			print cnt
+			url = url_queue[0]
+			print url
+			url_queue.remove(url)
+			if url in res:
+				print u'已经搜索过'.encode(platform_encoding)
+				continue
+			res[url] = cnt
+			url_list = fetch(url, pattern)
+			for url in url_list:
+				url_queue.append(url)
+			time.sleep(2)
+	except KeyboardInterrupt:
+		print 'Ended by KeyboardInterrupt'
+		pass
+	finally:
+		#print "len(url_queue) =", len(url_queue)
+		for (key, value) in res.items():
+			print key
 
 if __name__ == '__main__':
 	fetch_fenlei()
