@@ -74,7 +74,7 @@ def fetch_fenlei():
 	cnt = 0
 	res = dict()
 	try:
-		while len(url_queue) and cnt < 1000:
+		while len(url_queue):
 			cnt += 1
 			print cnt
 			url = url_queue[0]
@@ -93,8 +93,11 @@ def fetch_fenlei():
 		pass
 	finally:
 		#print "len(url_queue) =", len(url_queue)
+		fp = open('fenlei.txt', 'w')
 		for (key, value) in res.items():
-			print key
+			fp.write(key + '\n')
+			#print key
+		fp.close()
 
 if __name__ == '__main__':
 	fetch_fenlei()
