@@ -48,7 +48,7 @@ def fetch(url, pattern):
 	platform_encoding = get_platform_encoding()
 	#chinese_pattern = re.compile(u'[\u4e00-\u9fa5]+')
 	for li in links:
-		if 'href' in li.attrs:			
+		if 'href' in li.attrs:
 			ref = li.attrs['href']
 			if isinstance(ref, unicode):
 				ref = ref.encode('utf-8')
@@ -65,39 +65,59 @@ def fetch(url, pattern):
 				url_list.append(ref)
 	return url_list
 
-def fetch_fenlei():
+def fetch_fenlei(result_file, queue_file):
 	platform_encoding = get_platform_encoding()
-	url = r'http://fenlei.baike.com'
 	pattern = ur'^(http://fenlei.baike.com)/([\u4e00-\u9fa5]+)'
-	url_list = fetch(url, pattern)
+	
 	url_queue = list()
-	url_queue.append(url)
+	fpqueue = open(queue_file, 'r')
+	for line in fpqueue:
+		url_queue.append(line.strip('\n'))
+	fpqueue.close()
+
+	fp = open(result_file, 'r')
 	cnt = 0
-	res = dict()
-	fp = open('fenlei.txt', 'w')
+	res = set()
+	for line in fp:
+		cnt += 1
+		res.add(line.strip('\n'))
+	fp.close()
+
+	fp = open(result_file, 'a')
 	try:
-		while len(url_queue) and cnt < 100000:
-			cnt += 1
-			print cnt
+		while len(url_queue):
 			url = url_queue[0]
 			print url.decode('utf-8').encode(platform_encoding)
-			fp.write(url + '\n')
-			url_queue.remove(url)
 			if url in res:
+				url_queue.remove(url)
 				print u'已经搜索过'.encode(platform_encoding)
 				continue
-			res[url] = cnt
 			url_list = fetch(url, pattern)
+			cnt += 1
+			print cnt
+			res.add(url)
+			url_queue.remove(url)
+			fp.write(url + '\n')
+			fp.flush()
 			for url in url_list:
-				url_queue.append(url)
+				if url not in res:
+					url_queue.append(url)
+			print 'start sleep'
 			time.sleep(2)
+			print 'end sleep'
 	except KeyboardInterrupt:
 		print 'Ended by KeyboardInterrupt'
-		pass
 	finally:
 		#print "len(url_queue) =", len(url_queue)
+		fpqueue = open(queue_file, 'w')
+		for url in url_queue:
+			fpqueue.write(url + '\n')
+		print 'db file OK'
+		fpqueue.close()
 		fp.close()
 
 if __name__ == '__main__':
-	fetch_fenlei()
+	result_file = r'fenlei.txt'
+	queue_file = r'url_queue.txt'
+	fetch_fenlei(result_file, queue_file)
 	
