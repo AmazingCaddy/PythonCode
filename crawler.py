@@ -56,8 +56,10 @@ def fetch(url, pattern):
 			try:
 				#由于互动百科有些url有问题，会导致decode失败
 				ref = ref.decode('utf-8')
-			except:
+			except UnicodeDecodeError:
 				continue
+			except:
+				raise Exception()
 			match_data = re.match(pattern, ref)
 			if match_data:
 				ref = '/'.join(match_data.groups())
@@ -93,20 +95,23 @@ def fetch_fenlei(result_file, queue_file):
 				print u'已经搜索过'.encode(platform_encoding)
 				continue
 			url_list = fetch(url, pattern)
+			for n_url in url_list:
+				if n_url not in res:
+					url_queue.append(n_url)
 			cnt += 1
 			print cnt
 			res.add(url)
-			url_queue.remove(url)
 			fp.write(url + '\n')
 			fp.flush()
-			for url in url_list:
-				if url not in res:
-					url_queue.append(url)
+			url_queue.remove(url)
 			print 'start sleep'
 			time.sleep(2)
 			print 'end sleep'
 	except KeyboardInterrupt:
 		print 'Ended by KeyboardInterrupt'
+	except Exception, e:
+		print e
+		print 'exit for something is wrong'
 	finally:
 		#print "len(url_queue) =", len(url_queue)
 		fpqueue = open(queue_file, 'w')
