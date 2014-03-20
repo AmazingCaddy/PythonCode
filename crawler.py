@@ -23,7 +23,27 @@ def is_chinese(uchar):
 	else:
 		return False
 
+def unique():
+	result_file = r'fenlei.txt'
+	fp = open(result_file, 'r+')
+	hashset = set()
+	url_list = list()
+	for line in fp:
+		url = line.strip('\n')
+		#print url
+		hashset.add(url)
+	fp.seek(0)
+	for line in fp:
+		url = line.strip('\n')
+		if url in hashset:
+			url_list.append(url)
+	fp.seek(0)
+	for url in url_list:
+		fp.write(url + '\n')
+	fp.close()
+
 def fetch(url, pattern):
+	platform_encoding = get_platform_encoding()
 	fails = 0
 	while fails < 3:
 		try:
@@ -45,7 +65,6 @@ def fetch(url, pattern):
 	soup = BeautifulSoup(page, from_encoding='utf-8')
 	links = soup.find_all('a')
 	url_list = list()
-	platform_encoding = get_platform_encoding()
 	#chinese_pattern = re.compile(u'[\u4e00-\u9fa5]+')
 	for li in links:
 		if 'href' in li.attrs:
@@ -125,4 +144,4 @@ if __name__ == '__main__':
 	result_file = r'fenlei.txt'
 	queue_file = r'url_queue.txt'
 	fetch_fenlei(result_file, queue_file)
-	
+	#unique()
