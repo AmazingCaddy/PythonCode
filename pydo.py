@@ -148,12 +148,35 @@ class pydo(object):
 		if self.__debug:
 			print_err("Mysql Error %d: %s" % (e.args[0], e.args[1]))
 
-def main():
-	config = {'db': 'test', 'debug': True}
+def test():
+	config = {'debug': True}
 	pym = pydo(config)
-	entity = {"name": 'hehe', 'val': 'sdsf', 'dd': 'asds'}
-	conditions = {'id': 1, 'name': 'sds', 'date': '2014'}
-	pym.update('t1', entity, conditions)
+	pym.execute('''DROP DATABASE IF EXISTS `test`;''')
+	pym.execute('''create database test;''')
+	pym.execute('''use test;''')
+	pym.execute('''
+		create TABLE `t1` (
+			`id` BIGINT(20) not null AUTO_INCREMENT,
+			`name` varchar(32),
+			`age` int(11) not null,
+			PRIMARY key(`id`)
+		) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+	''')
+	pym.execute('''
+		create TABLE `t2` (
+			`id` BIGINT(20) not null AUTO_INCREMENT,
+			`notion` varchar(32),
+			PRIMARY key(`id`)
+		) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+	''')
+	pym.insert('t1', {'name': 'Alice', 'age': 18})
+	pym.insert('t1', {'name': 'Bob', 'age': 20})
+	pym.commit()
+
+	pym.insert('t2', {'notion': 'xx'})
+	pym.insert('t2', {'notion': 'yy'})
+	pym.commit()
+	#pym.insert('')
 
 if __name__ == "__main__":
-	main()
+	test()
