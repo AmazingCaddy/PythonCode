@@ -6,7 +6,7 @@ import json
 
 try:
 	import pymongo
-	import common
+	import wwbcom
 	from bson.objectid import ObjectId
 except ImportError:
 	sys.exit("Exceptions.ImportError: No module named pymongo\n")
@@ -111,7 +111,7 @@ class pymg(object):
 
 	def __handle_error(self, e):
 		if self.__params['debug']:
-			common.print_error(e)
+			wwbcom.print_error(e)
 		else:
 			raise e
 

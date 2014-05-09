@@ -5,7 +5,7 @@ import sys
 
 try:
 	import MySQLdb
-	import common
+	import wwbcom
 except ImportError:
 	sys.exit("Exceptions.ImportError: No module named MySQLdb\n")
 
@@ -140,7 +140,7 @@ class pydo(object):
 		#if self.__in_transaction:
 		self.__conn.rollback()
 		if self.__params['debug']:
-			common.print_error("Mysql Error %d: %s" % (e.args[0], e.args[1]))
+			wwbcom.print_error("Mysql Error %d: %s" % (e.args[0], e.args[1]))
 		else:
 			raise e
 
