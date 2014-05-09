@@ -1,16 +1,13 @@
 #!/usr/bin/env python
 #coding: utf-8
 
-from __future__ import print_function
 import sys
-
-def print_err(*objs):
-    print("Error:", *objs, file=sys.stderr)
 
 try:
 	import MySQLdb
+	import common
 except ImportError:
-	sys.exit("Exceptions.ImportError: No module named MySQLdb\n");
+	sys.exit("Exceptions.ImportError: No module named MySQLdb\n")
 
 class pydo(object):
 	""" pydo is a class for mysql operation """
@@ -25,15 +22,12 @@ class pydo(object):
 		params['db'] = config['db'] if config.has_key('db') else 'mysql'
 		params['charset'] = config['charset'] if config.has_key('charset') else 'utf8'
 		params['use_unicode'] = config['use_unicode'] if config.has_key('use_unicode') else True
-		
+		params['debug'] = config['debug'] if config.has_key('debug') else False
+
 		self.__params = params
 		self.__conn = None
 		self.__cursor = None
 		#self.__in_transaction = False
-		if config.has_key('debug') and config['debug']:
-			self.__debug = True
-		else:
-			self.__debug = False
 
 	def __del__(self):
 		self.__close()
@@ -54,7 +48,7 @@ class pydo(object):
 			self.__conn.autocommit(False)
 			self.__cursor = self.__conn.cursor(MySQLdb.cursors.DictCursor)
 		except MySQLdb.Error as e:
-			self.__handler_error(e)
+			self.__handle_error(e)
 	
 	def execute(self, sql, params = None):
 		self.__connect()
@@ -64,7 +58,7 @@ class pydo(object):
 			self.__cursor.execute(sql, params)
 			return True
 		except MySQLdb.Error as e:
-			self.__handler_error(e)
+			self.__handle_error(e)
 		return False
 
 	def insert(self, table_name, entity, auto_increment = True):
@@ -115,7 +109,7 @@ class pydo(object):
 		try:
 			self.__conn.select_db(dbname)
 		except MySQLdb.Error as e:
-			self.__handler_error(e)
+			self.__handle_error(e)
 
 	def commit(self):
 		self.__conn.commit()
@@ -131,22 +125,24 @@ class pydo(object):
 			if self.__cursor:
 				self.__cursor.close()
 		except MySQLdb.Error as e:
-			self.__handler_error(e)
+			self.__handle_error(e)
 		finally:
 			self.__cursor = None			
 			try:
 				if self.__conn:
 					self.__conn.close()
 			except MySQLdb.Error as e:
-				self.__handler_error(e)
+				self.__handle_error(e)
 			finally:
 				self.__conn = None
 
-	def __handler_error(self, e):
+	def __handle_error(self, e):
 		#if self.__in_transaction:
 		self.__conn.rollback()
-		if self.__debug:
-			print_err("Mysql Error %d: %s" % (e.args[0], e.args[1]))
+		if self.__params['debug']:
+			common.print_error("Mysql Error %d: %s" % (e.args[0], e.args[1]))
+		else:
+			raise e
 
 def test():
 	config = {'debug': True}
@@ -171,6 +167,7 @@ def test():
 	''')
 	pym.insert('t1', {'name': 'Alice', 'age': 18})
 	pym.insert('t1', {'name': 'Bob', 'age': 20})
+	#pym.insert('t1', {'name': 'Bob', 'age': 21, 'id': 2})
 	pym.commit()
 
 	pym.insert('t2', {'notion': 'xx'})
