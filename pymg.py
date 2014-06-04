@@ -65,17 +65,6 @@ class pymg(object):
 		return False
 
 	def update(self, collection, entity, conditions = {}, multiline = False):
-		'''
-			$set			指定一个键的值，如果没有会创建
-			$unset	
-			$inc			不存在的会自动创建，键值必须是数字
-			$push and $pop	数组修改器
-			$				定位修改器
-			$ne				一个值不在数组中，才会加进去
-			$addToSet		可以避免重复的问题
-			$each			结合addToSet可以一次添加多个值
-			$pull
-		'''
 		self.__connect()
 		try:
 			self.__db[collection].update(conditions, entity, multi = multiline)
@@ -133,5 +122,12 @@ def test():
 	#res = pym.run_command('getLastError')
 	#print(res)
 
+def main():
+	config = {'host': 'localhost', 'port': 27017, 'debug': True}
+	pym = pymg(config)
+	pym.__handle_error('xxx')
+	#print pymg.__dict__
+
 if __name__ == '__main__':
-	test()
+	#test()
+	main()
