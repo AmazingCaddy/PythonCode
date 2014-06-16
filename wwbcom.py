@@ -34,7 +34,7 @@ def is_chinese(uchar):
 	else:
 		return False
 
-def check_legal_name (name):
+def check_legal_name(name):
 	if not isinstance(name, unicode):
 		name = name.decode('utf-8')
 	pattern = re.compile(ur'([\u00b7\u4e00-\u9fa5]+)')
@@ -44,9 +44,41 @@ def check_legal_name (name):
 	else:
 		return False
 
+def check_legal_chinese(word):
+	if not isinstance(word, unicode):
+		word = word.decode('utf-8')
+	pattern = re.compile(ur'([\u0000-\u007e\u4e00-\u9fa5\uff01-\uff5e]+)')
+	m = pattern.match(name)
+	if m:
+		return m.groups()
+	else:
+		return False
+
+def strq2b(ustring):
+	"""全角转半角"""
+	rstring = ""
+	for uchar in ustring:
+		inside_code=ord(uchar)
+		if inside_code == 12288:								#全角空格直接转换			
+			inside_code = 32 
+		elif (inside_code >= 65281 and inside_code <= 65374):	#全角字符（除空格）根据关系转化
+			inside_code -= 65248
+		rstring += unichr(inside_code)
+	return rstring
+	
+def strb2q(ustring):
+	"""半角转全角"""
+	rstring = ""
+	for uchar in ustring:
+		inside_code=ord(uchar)
+		if inside_code == 32:								#半角空格直接转化				  
+			inside_code = 12288
+		elif inside_code >= 33 and inside_code <= 126:		#半角字符（除空格）根据关系转化
+			inside_code += 65248
+		rstring += unichr(inside_code)
+	return rstring
+
 def test():
-	#l = '{"X": "Y", "X": "c"}'
-	#print(json.loads(l))
 	pass
 
 if __name__ == '__main__':
