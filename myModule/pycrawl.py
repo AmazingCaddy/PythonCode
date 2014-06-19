@@ -6,7 +6,7 @@ from StringIO import StringIO
 
 import urllib, urllib2
 import socket
-import gzip
+import gzip, time
 
 import wwbcom
 
