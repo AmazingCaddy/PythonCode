@@ -5,8 +5,18 @@ from __future__ import print_function
 import platform
 import sys
 import time
-import re
+import string, re
 import json
+
+def clean_non_alpha(s):
+	''' s 不能是unicode '''
+	# delEStr 中的每个字符表示要去掉的字符
+	delEStr = string.punctuation + string.digits + '\r\n'
+	# print delEStr
+	# 生成一个映射表，这里是把所有要去掉的字符映射成空格
+	identify = string.maketrans(delEStr, ' ' * len(delEStr))
+	s = ' '.join([i for i in string.translate(s, identify).lower().split(' ') if i != ''])
+	return s
 
 def print_error(*args):
 	ms = time.time() % 1
