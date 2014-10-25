@@ -16,7 +16,7 @@ class crawler(object):
 		super(crawler, self).__init__()
 		#self.arg = arg
 
-	def get_html(self, url, req_header, timeout = 10, retry = 3):
+	def get_html(self, url, req_header, timeout = 10, retry = 3, sleep_time = 5):
 		fails = 0
 		html = ''
 		while fails < retry:
@@ -31,11 +31,11 @@ class crawler(object):
 					html = response.read()
 			except socket.timeout, e:
 				fails += 1
-				time.sleep(5)
+				time.sleep(sleep_time)
 				print 'connection timeout, start to reconnect:', fails
 			except urllib2.URLError, e:
 				fails += 1
-				time.sleep(5)
+				time.sleep(sleep_time)
 				print 'connection error, start to reconnect:', fails
 			else:
 				break
@@ -49,7 +49,7 @@ class crawler(object):
 			#'Cache-Control': r'max-age=0',
 			#'Connection': r'keep-alive',
 			#'Host': r'car.autohome.com.cn',
-			'User-Agent': r'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36',
+			'User-Agent': r'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.104 Safari/537.36',
 			'Referer': None #注意如果依然不能抓取的话，这里可以设置抓取网站的host
 		}
 		html = self.get_html(url, req_header)
