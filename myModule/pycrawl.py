@@ -16,7 +16,7 @@ class crawler(object):
 		super(crawler, self).__init__()
 		#self.arg = arg
 
-	def get_html(self, url, req_header, timeout = 10, retry = 3, sleep_time = 5):
+	def __get_source_code(self, url, req_header, timeout = 10, retry = 3, sleep_time = 5):
 		fails = 0
 		html = ''
 		while fails < retry:
@@ -41,7 +41,7 @@ class crawler(object):
 				break
 		return html
 
-	def get_soup(self, url):
+	def get_html(self, url, timeout = 10, retry = 3, sleep_time = 5):
 		req_header = {
 			'Accept': r'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
 			'Accept-Encoding': r'gzip,deflate,sdch',
@@ -52,7 +52,11 @@ class crawler(object):
 			'User-Agent': r'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.104 Safari/537.36',
 			'Referer': None #注意如果依然不能抓取的话，这里可以设置抓取网站的host
 		}
-		html = self.get_html(url, req_header)
+		html = self.__get_source_code(url, req_header, timeout, retry, sleep_time)
+		return html
+
+	def get_soup(self, url, timeout = 10, retry = 3, sleep_time = 5):
+		html = self.get_html(url, timeout, retry, sleep_time)
 		soup = BeautifulSoup(html)
 		return soup
 
