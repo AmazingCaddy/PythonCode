@@ -61,14 +61,44 @@ class pydo(object):
 			self.__handle_error(e)
 		return False
 
+	def executemany(self, sql, params = None):
+		self.__connect()
+		if not isinstance(params, list):
+			return False
+		for i in xrange(len(params)):
+			if isinstance(params[i], list):
+				params[i] = tuple(params[i])
+		try:
+			self.__cursor.executemany(sql, params)
+			return True
+		except MySQLdb.Error as e:
+			self.__handle_error(e)
+		return False
+
 	def insert(self, table_name, entity, auto_increment = True):
 		columns = entity.keys()
 		prefix = "".join(['INSERT INTO `',table_name,'`'])
 		fields = ",".join(["".join(['`', column, '`']) for column in columns])
 		values = ",".join(["%s" for i in range(len(columns))])
 		sql = "".join([prefix, "(", fields, ") VALUES (", values, ")"])
-		params = [entity[key] for key in columns]
+		params = tuple([entity[key] for key in columns])
 		if self.execute(sql, params):
+			if auto_increment:
+				return self.__cursor.lastrowid
+			return self.__cursor.rowcount
+		return False
+
+	def batch_insert(self, table_name, entities, auto_increment = True):
+		if (not isinstance(entities, list)) or len(entities) == 0:
+			return False
+		entity = entities[0]
+		columns = entity.keys()
+		prefix = "".join(['INSERT INTO `',table_name,'`'])
+		fields = ",".join(["".join(['`', column, '`']) for column in columns])
+		values = ",".join(["%s" for i in range(len(columns))])
+		sql = "".join([prefix, "(", fields, ") VALUES (", values, ")"])
+		params = [tuple([entity[key] for key in columns]) for entity in entities]
+		if self.executemany(sql, params):
 			if auto_increment:
 				return self.__cursor.lastrowid
 			return self.__cursor.rowcount
